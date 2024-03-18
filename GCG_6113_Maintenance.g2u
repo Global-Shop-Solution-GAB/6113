@@ -1,0 +1,125 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.Form..Create(BaseForm)
+Gui.Form..Caption("AR Aging Settings")
+Gui.Form..Size(277,120)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..BackColor(-2147483633)
+Gui.Form..MousePointer(0)
+Gui.Form..Sizeable(False)
+Gui.Form..AlwaysOnTop(False)
+Gui.Form..FontName("Tahoma")
+Gui.Form..FontSize(8.25)
+Gui.Form..ControlBox(True)
+Gui.Form..MaxButton(True)
+Gui.Form..MinButton(True)
+Gui.Form..Moveable(True)
+Gui.Form..ShowInTaskBar(True)
+Gui.Form..TitleBar(True)
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form.frame1.Create(Frame)
+Gui.Form.frame1.Enabled(True)
+Gui.Form.frame1.Visible(True)
+Gui.Form.frame1.Zorder(0)
+Gui.Form.frame1.Size(143,50)
+Gui.Form.frame1.Position(44,34)
+Gui.Form.frame1.Caption("Age")
+Gui.Form.frame1.FontName("Tahoma")
+Gui.Form.frame1.FontSize(8.25)
+Gui.Form.optDueDate.Create(Option)
+Gui.Form.optDueDate.Size(120,20)
+Gui.Form.optDueDate.Position(4,5)
+Gui.Form.optDueDate.Caption("by Due Date")
+Gui.Form.optDueDate.Enabled(True)
+Gui.Form.optDueDate.Visible(True)
+Gui.Form.optDueDate.Zorder(0)
+Gui.Form.optDueDate.FontName("Tahoma")
+Gui.Form.optDueDate.FontSize(8.25)
+Gui.Form.optDueDate.Parent("frame1")
+Gui.Form.optInvDate.Create(Option)
+Gui.Form.optInvDate.Size(114,21)
+Gui.Form.optInvDate.Position(2,26)
+Gui.Form.optInvDate.Caption("by Invoice Date")
+Gui.Form.optInvDate.Enabled(True)
+Gui.Form.optInvDate.Visible(True)
+Gui.Form.optInvDate.Zorder(0)
+Gui.Form.optInvDate.FontName("Tahoma")
+Gui.Form.optInvDate.FontSize(8.25)
+Gui.Form.optInvDate.Parent("frame1")
+Gui.Form.lbl1.Create(Label,"Age",True,22,14,0,16,39,True,0,"Tahoma",9,,0,0)
+Gui.Form.lbl1.BorderStyle(0)
+Gui.Form.chkZero.Create(CheckBox)
+Gui.Form.chkZero.Enabled(True)
+Gui.Form.chkZero.Visible(True)
+Gui.Form.chkZero.Zorder(0)
+Gui.Form.chkZero.Size(150,20)
+Gui.Form.chkZero.Position(16,5)
+Gui.Form.chkZero.Caption("Show Zero Balance")
+Gui.Form.chkZero.FontName("Tahoma")
+Gui.Form.chkZero.FontSize(8.25)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+v.Global.sRet.Declare
+Program.Sub.Preflight.End
+Program.Sub.Main.Start
+v.Local.sSQL.Declare
+Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+f.ODBC.Connection!Con.OpenCompanyConnection
+v.Local.sSQL.Set("Select ZERO_BALANCE from GCG_6113_MAINTENANCE;")
+f.ODBC.Connection!Con.ExecuteAndReturn(v.local.sSQL,v.Global.sRet)
+f.Intrinsic.Control.If(v.Global.sRet,=,True)
+	gui.Form.chkZero.Value(1)
+f.Intrinsic.Control.EndIf
+
+v.Local.sSQL.Set("Select AGE_BY_DUE_DATE from GCG_6113_MAINTENANCE;")
+f.ODBC.Connection!Con.ExecuteAndReturn(v.local.sSQL,v.Global.sRet)
+
+f.Intrinsic.Control.If(v.Global.sRet,=,True)
+	gui.Form.optDueDate.Value(true)
+	gui.Form.optInvDate.Value(false)
+f.Intrinsic.Control.Else
+	gui.Form.optDueDate.Value(false)
+	gui.Form.optInvDate.Value(true)
+f.Intrinsic.Control.EndIf
+gui.Form..Show
+Program.Sub.Main.End
+Program.Sub.Form_UnLoad.Start
+v.Local.sSQL.Declare
+v.Local.iZero.Declare
+v.Local.iDueDate.Declare
+v.Local.iInvDate.Declare
+
+f.Intrinsic.Control.If(v.Screen.Form!chkZero.Value,=,1)
+	v.Local.iZero.Set(1)
+f.Intrinsic.Control.EndIf
+
+f.Intrinsic.Control.If(v.Screen.Form!optDueDate.Value,=,True)
+	v.Local.iDueDate.Set(1)
+	v.Local.iInvDate.Set(0)
+	
+f.Intrinsic.Control.ElseIf(v.Screen.Form!optInvDate.Value,=,True)
+	v.Local.iDueDate.Set(0)
+	v.Local.iInvDate.Set(1)
+f.Intrinsic.Control.EndIf
+
+
+f.Intrinsic.Control.If(v.Global.sRet,=,"")
+	f.Intrinsic.String.Build("Insert into GCG_6113_MAINTENANCE values('{0}','{1}','{2}')",v.Local.iZero,v.Local.iDueDate,v.Local.iInvDate,v.Local.sSQL)
+f.Intrinsic.Control.Else
+	f.Intrinsic.String.Build("Update GCG_6113_MAINTENANCE set ZERO_BALANCE = {0}, AGE_BY_DUE_DATE = {1},AGE_BY_INV_DATE = {2};",v.Local.iZero,v.Local.iDueDate,v.Local.iInvDate,v.Local.sSQL)
+f.Intrinsic.Control.EndIf
+
+f.ODBC.Connection!Con.Execute(v.local.sSQL)
+
+f.Intrinsic.UI.Msgbox("Settings saved!","Notification")
+
+f.ODBC.Connection!Con.Close
+f.Intrinsic.Control.End
+Program.Sub.Form_UnLoad.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$bpham$}$20200922190005366$}$Di0riF4Q5RIv6jxva5zSWHQka3gtjpYgJLdJwOkMLlluSe24o0yp74z3VzK9FoNcrPs8ZjpAzgo=
+Program.Sub.Comments.End
